@@ -1,0 +1,52 @@
+
+name: Build IP Rotator APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Build APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: IP-Rotator-APK
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Create ZIP
+        run: |
+          mkdir -p release
+          cp app/build/outputs/apk/debug/*.apk release/
+          cd release
+          zip -r ../IP-Rotator.zip .
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: IP-Rotator-ZIP
+          path: IP-Rotator.zip
+          
